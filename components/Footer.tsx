@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowUpRight, ShieldCheck } from 'lucide-react';
+import { registerSecretLogoClick } from '@/lib/secretAuth';
 
 interface FooterProps {
   onOpenDemoModal: () => void;
@@ -9,6 +11,16 @@ interface FooterProps {
 }
 
 export function Footer({ onOpenDemoModal, onNavigateToSimulator }: FooterProps) {
+  const router = useRouter();
+
+  const handleLogoSecretClick = (e: React.MouseEvent) => {
+    const { triggered } = registerSecretLogoClick();
+    if (triggered) {
+      e.preventDefault();
+      router.push('/restrito');
+    }
+  };
+
   return (
     <footer className="bg-slate-950 border-t border-slate-800 text-slate-400 text-xs overflow-hidden w-full max-w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -16,12 +28,16 @@ export function Footer({ onOpenDemoModal, onNavigateToSimulator }: FooterProps) 
           
           {/* Brand Column */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-500 p-[1px]">
+            <div 
+              onClick={handleLogoSecretClick}
+              className="flex items-center gap-3 cursor-pointer select-none group w-fit"
+              title="Chameleon Systems"
+            >
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-500 p-[1px] transition-transform group-hover:scale-105">
                 <div className="w-full h-full bg-slate-950 rounded-[7px] flex items-center justify-center">
                   <svg
                     viewBox="0 0 24 24"
-                    className="w-4 h-4 text-emerald-400"
+                    className="w-4 h-4 text-emerald-400 group-hover:text-cyan-300 transition-colors"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
@@ -32,10 +48,11 @@ export function Footer({ onOpenDemoModal, onNavigateToSimulator }: FooterProps) 
                     <path d="M7 14c1.5 2 4.5 3 7 1.5s3.5-4 1.5-6.5-5-2-7 0" />
                     <circle cx="9" cy="9" r="1.5" fill="currentColor" />
                     <path d="M16 8c1-1 3-1 4 0" />
+                    <path d="M17 14c1 1 2.5 1.5 4 1" />
                   </svg>
                 </div>
               </div>
-              <span className="text-lg font-bold text-white font-display tracking-tight">
+              <span className="text-lg font-bold text-white font-display tracking-tight group-hover:text-slate-200 transition-colors">
                 CHAMELEON
               </span>
             </div>

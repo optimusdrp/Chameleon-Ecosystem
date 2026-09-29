@@ -54,7 +54,6 @@ export function Hero({
       const customEvent = e as CustomEvent<{ moduleId?: ModuleId }>;
       if (customEvent.detail?.moduleId) {
         setLocalModule(customEvent.detail.moduleId);
-        onSelectModule?.(customEvent.detail.moduleId);
       }
       setLocalAdaptationActive(true);
       setSimulationToggledCount((prev) => prev + 1);
@@ -67,7 +66,6 @@ export function Hero({
       const customEvent = e as CustomEvent<{ moduleId: ModuleId }>;
       if (customEvent.detail?.moduleId) {
         setLocalModule(customEvent.detail.moduleId);
-        onSelectModule?.(customEvent.detail.moduleId);
       }
     };
 
@@ -80,25 +78,12 @@ export function Hero({
       window.removeEventListener('chameleon-module-change', handleModuleChangeEvent);
       window.removeEventListener('chameleon-apply-layout', handleAdaptationEvent);
     };
-  }, [onSelectModule]);
+  }, []);
 
   const handleSelectModuleTab = (mod: ModuleId) => {
     setLocalModule(mod);
     if (onSelectModule) {
       onSelectModule(mod);
-    }
-
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('chameleon-module-change', {
-          detail: { moduleId: mod }
-        })
-      );
-      window.dispatchEvent(
-        new CustomEvent('chameleon-simulator-context-change', {
-          detail: { moduleId: mod }
-        })
-      );
     }
   };
 

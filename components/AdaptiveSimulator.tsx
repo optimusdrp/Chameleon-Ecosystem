@@ -112,13 +112,6 @@ export function AdaptiveSimulator({
       onSelectModule(mod);
     }
     broadcastSimulatorContext(mod, density, selectedPersona);
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('chameleon-module-change', {
-          detail: { moduleId: mod }
-        })
-      );
-    }
   };
 
   const handleSelectDensity = (newDensity: 'compact' | 'standard' | 'spacious') => {
@@ -241,7 +234,6 @@ export function AdaptiveSimulator({
       const customEvent = e as CustomEvent<{ moduleId?: ModuleId }>;
       const targetMod = customEvent.detail?.moduleId || activeModule;
       setInternalModule(targetMod);
-      onSelectModule?.(targetMod);
       handleTriggerInstantAdaptation(targetMod);
     };
 
@@ -249,7 +241,6 @@ export function AdaptiveSimulator({
       const customEvent = e as CustomEvent<{ moduleId: ModuleId }>;
       if (customEvent.detail?.moduleId) {
         setInternalModule(customEvent.detail.moduleId);
-        onSelectModule?.(customEvent.detail.moduleId);
       }
     };
 
@@ -262,7 +253,7 @@ export function AdaptiveSimulator({
       window.removeEventListener('chameleon-module-change', handleModuleChangeEvent);
       window.removeEventListener('chameleon-apply-layout', handleAdaptationEvent);
     };
-  }, [activeModule, onSelectModule, handleTriggerInstantAdaptation]);
+  }, [activeModule, handleTriggerInstantAdaptation]);
 
   return (
     <section id="simulador" className="py-24 relative border-t border-b border-white/10 overflow-hidden w-full max-w-full">

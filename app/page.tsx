@@ -15,25 +15,7 @@ import { LeadModal } from '@/components/LeadModal';
 import { ChameleonAssistant } from '@/components/ChameleonAssistant';
 import { AdaptationToast } from '@/components/AdaptationToast';
 import { ModuleId } from '@/types/chameleon';
-import { AestheticTheme, THEME_CONFIGS } from '@/types/theme';
-
-function subscribeTheme(callback: () => void) {
-  if (typeof window === 'undefined') return () => {};
-  window.addEventListener('storage', callback);
-  window.addEventListener('chameleon-theme-change', callback);
-  return () => {
-    window.removeEventListener('storage', callback);
-    window.removeEventListener('chameleon-theme-change', callback);
-  };
-}
-
-function getThemeSnapshot(): AestheticTheme {
-  return 'modern-minimalist';
-}
-
-function getServerThemeSnapshot(): AestheticTheme {
-  return 'modern-minimalist';
-}
+import { AestheticTheme } from '@/types/theme';
 
 export default function Home() {
   const currentTheme: AestheticTheme = 'modern-minimalist';
@@ -77,18 +59,6 @@ export default function Home() {
 
   const handleSelectModule = (moduleId: ModuleId) => {
     setSelectedModule(moduleId);
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('chameleon-module-change', {
-          detail: { moduleId }
-        })
-      );
-      window.dispatchEvent(
-        new CustomEvent('chameleon-simulator-context-change', {
-          detail: { moduleId }
-        })
-      );
-    }
   };
 
   const handleTriggerAdaptation = (targetModule?: ModuleId) => {
@@ -99,11 +69,6 @@ export default function Home() {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(
         new CustomEvent('chameleon-trigger-adaptation', {
-          detail: { moduleId: mod }
-        })
-      );
-      window.dispatchEvent(
-        new CustomEvent('chameleon-module-change', {
           detail: { moduleId: mod }
         })
       );

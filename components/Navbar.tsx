@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Sparkles, Layers, ArrowRight, Menu, X, Cpu } from 'lucide-react';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { AestheticTheme } from '@/types/theme';
+import { registerSecretLogoClick } from '@/lib/secretAuth';
 
 interface NavbarProps {
   onOpenDemoModal: () => void;
@@ -18,6 +20,7 @@ export function Navbar({
   currentTheme = 'modern-minimalist',
   onThemeChange = () => {}
 }: NavbarProps) {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -28,6 +31,14 @@ export function Navbar({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleLogoSecretClick = (e: React.MouseEvent) => {
+    const { triggered } = registerSecretLogoClick();
+    if (triggered) {
+      e.preventDefault();
+      router.push('/restrito');
+    }
+  };
 
   return (
     <header
@@ -40,7 +51,7 @@ export function Navbar({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo with Chameleon Mark */}
-          <a href="#" className="flex items-center gap-3 group">
+          <a href="#" onClick={handleLogoSecretClick} className="flex items-center gap-3 group select-none">
             <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-500 p-[1.5px] transition-transform duration-300 group-hover:scale-105 shadow-lg shadow-emerald-500/20">
               <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center overflow-hidden">
                 <svg
