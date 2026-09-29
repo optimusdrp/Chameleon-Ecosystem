@@ -1,0 +1,7 @@
+{
+  "name": "Chameleon — Ecossistema de Interfaces Adaptativas",
+  "description": "Ecossistema modular plug-and-play que aprende o comportamento do usuário e adapta layouts, cores e atalhos em tempo real para ERP, CRM, Portais e Web Apps.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
