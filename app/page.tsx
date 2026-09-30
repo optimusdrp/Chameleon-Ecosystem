@@ -8,7 +8,6 @@ import { ModulesGrid } from '@/components/ModulesGrid';
 import { HowItWorks } from '@/components/HowItWorks';
 // ModuleConfigurator (Calculadora de ROI) temporarily disabled per request
 // import { ModuleConfigurator } from '@/components/ModuleConfigurator';
-import { CaseStudies } from '@/components/CaseStudies';
 import { FAQSection } from '@/components/FAQSection';
 import { Footer } from '@/components/Footer';
 import { LeadModal } from '@/components/LeadModal';
@@ -141,7 +140,7 @@ export default function Home() {
         onTriggerAdaptation={handleTriggerAdaptation}
       />
 
-      {/* Plug-and-Play Modules Grid */}
+      {/* Unified Plug-and-Play Modules & Contracting Section */}
       <ModulesGrid
         onSelectModuleForSimulator={handleSelectModuleForSimulator}
         onOpenLeadModal={handleOpenLeadModal}
@@ -150,9 +149,6 @@ export default function Home() {
 
       {/* How It Works (Adaptive Architecture) */}
       <HowItWorks />
-
-      {/* Case Studies / Enterprise Proof */}
-      <CaseStudies />
 
       {/* Interactive FAQ */}
       <FAQSection />

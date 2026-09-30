@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, Layers, ArrowRight, Menu, X, Cpu } from 'lucide-react';
+import { ArrowRight, Menu, X, Cpu } from 'lucide-react';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { AestheticTheme } from '@/types/theme';
 import { registerSecretLogoClick } from '@/lib/secretAuth';
@@ -14,6 +14,13 @@ interface NavbarProps {
   onThemeChange?: (theme: AestheticTheme) => void;
 }
 
+const NAV_ITEMS = [
+  { id: 'simulador', label: 'Simulador em Tempo Real', icon: Cpu },
+  { id: 'modulos', label: 'Módulos e Contratar' },
+  { id: 'como-funciona', label: 'Como Funciona' },
+  { id: 'faq', label: 'FAQ', mobileLabel: 'Perguntas Frequentes' },
+];
+
 export function Navbar({ 
   onOpenDemoModal, 
   onNavigateToSimulator,
@@ -23,20 +30,65 @@ export function Navbar({
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('');
 
+  // Scroll spy to highlight active link based on current scroll position
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
+
+      // If at top of the page, clear active section
+      if (window.scrollY < 220) {
+        setActiveSection('');
+        return;
+      }
+
+      const sectionIds = ['faq', 'como-funciona', 'modulos', 'simulador'];
+      const scrollPosition = window.scrollY + 140;
+
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (el) {
+          const top = el.offsetTop;
+          if (scrollPosition >= top) {
+            setActiveSection(id);
+            return;
+          }
+        }
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogoSecretClick = (e: React.MouseEvent) => {
+  const handleNavClick = (e: React.MouseEvent, sectionId: string) => {
+    e.preventDefault();
+    setActiveSection(sectionId);
+    setMobileMenuOpen(false);
+
+    if (typeof window !== 'undefined' && window.history.pushState) {
+      window.history.pushState(null, '', `#${sectionId}`);
+    }
+
+    const el = document.getElementById(sectionId);
+    if (el) {
+      const yOffset = -80; // Height of the fixed navbar
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
+
+  const handleLogoClick = (e: React.MouseEvent) => {
     const { triggered } = registerSecretLogoClick();
     if (triggered) {
       e.preventDefault();
       router.push('/restrito');
+    } else {
+      e.preventDefault();
+      setActiveSection('');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -51,7 +103,7 @@ export function Navbar({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo with Chameleon Mark */}
-          <a href="#" onClick={handleLogoSecretClick} className="flex items-center gap-3 group select-none">
+          <a href="#" onClick={handleLogoClick} className="flex items-center gap-3 group select-none cursor-pointer">
             <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-500 p-[1.5px] transition-transform duration-300 group-hover:scale-105 shadow-lg shadow-emerald-500/20">
               <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center overflow-hidden">
                 <svg
@@ -83,33 +135,30 @@ export function Navbar({
             </div>
           </a>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm">
-            <button
-              onClick={onNavigateToSimulator}
-              className="text-slate-300 hover:text-emerald-400 transition-colors font-medium flex items-center gap-1.5"
-            >
-              <Cpu className="w-4 h-4 text-emerald-400" />
-              Simulador em Tempo Real
-            </button>
-            <a
-              href="#modulos"
-              className="text-slate-300 hover:text-emerald-400 transition-colors font-medium"
-            >
-              Módulos Plug-and-Play
-            </a>
-            <a
-              href="#como-funciona"
-              className="text-slate-300 hover:text-emerald-400 transition-colors font-medium"
-            >
-              Como Funciona
-            </a>
-            <a
-              href="#faq"
-              className="text-slate-300 hover:text-emerald-400 transition-colors font-medium"
-            >
-              FAQ
-            </a>
+          {/* Desktop Nav Links with Active Highlight */}
+          <nav className="hidden md:flex items-center gap-1.5 p-1 rounded-full bg-slate-900/60 border border-slate-800/80 backdrop-blur-md">
+            {NAV_ITEMS.map((item) => {
+              const isActive = activeSection === item.id;
+              const Icon = item.icon;
+              return (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={(e) => handleNavClick(e, item.id)}
+                  className={`px-3.5 py-1.5 rounded-full transition-all duration-200 text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer relative ${
+                    isActive
+                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 font-semibold shadow-sm shadow-emerald-500/20 ring-1 ring-emerald-500/20'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60 font-medium border border-transparent'
+                  }`}
+                >
+                  {Icon && <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />}
+                  {isActive && !Icon && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  )}
+                  <span>{item.label}</span>
+                </a>
+              );
+            })}
           </nav>
 
           {/* Right Action Buttons */}
@@ -137,38 +186,34 @@ export function Navbar({
 
         {/* Mobile Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden mt-3 p-4 bg-slate-900/95 border border-slate-800 rounded-xl backdrop-blur-xl space-y-3 animate-in fade-in slide-in-from-top-2">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onNavigateToSimulator();
-              }}
-              className="w-full text-left py-2 px-3 text-sm text-emerald-400 font-medium hover:bg-slate-800/60 rounded-lg flex items-center gap-2"
-            >
-              <Cpu className="w-4 h-4 text-emerald-400" />
-              Simulador em Tempo Real
-            </button>
-            <a
-              href="#modulos"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg"
-            >
-              Módulos Plug-and-Play
-            </a>
-            <a
-              href="#como-funciona"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg"
-            >
-              Como Funciona
-            </a>
-            <a
-              href="#faq"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg"
-            >
-              Perguntas Frequentes
-            </a>
+          <div className="md:hidden mt-3 p-4 bg-slate-900/95 border border-slate-800 rounded-xl backdrop-blur-xl space-y-2 animate-in fade-in slide-in-from-top-2">
+            {NAV_ITEMS.map((item) => {
+              const isActive = activeSection === item.id;
+              const Icon = item.icon;
+              return (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={(e) => handleNavClick(e, item.id)}
+                  className={`w-full py-2.5 px-3.5 text-sm rounded-xl transition-all flex items-center justify-between cursor-pointer ${
+                    isActive
+                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {Icon && <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />}
+                    <span>{item.mobileLabel || item.label}</span>
+                  </div>
+                  {isActive && (
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Ativo
+                    </span>
+                  )}
+                </a>
+              );
+            })}
+
             <div className="pt-2 border-t border-slate-800 space-y-2">
               <button
                 onClick={() => {

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { CHAMELEON_MODULES } from '@/lib/chameleonData';
 import { ModuleId, LeadFormData } from '@/types/chameleon';
+import { saveDemoRequest } from '@/lib/demoRequests';
 
 interface LeadModalProps {
   isOpen: boolean;
@@ -67,6 +68,21 @@ export function LeadModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    try {
+      saveDemoRequest({
+        name: formData.name,
+        email: formData.email,
+        company: formData.company,
+        phone: formData.phone,
+        segment: formData.segment,
+        teamSize: formData.teamSize,
+        selectedModules: selectedModules,
+        notes: formData.notes
+      });
+    } catch {
+      // Continue simulation gracefully
+    }
 
     // Simulate instant enterprise blueprint generation
     setTimeout(() => {
