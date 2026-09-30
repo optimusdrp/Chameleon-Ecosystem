@@ -69,6 +69,12 @@ import {
   getOrCreateConversationForClient 
 } from '@/lib/clientChat';
 import { ClientChatTab } from '@/components/ClientChatTab';
+import { 
+  ContractAuditLog, 
+  INITIAL_AUDIT_LOGS, 
+  recordContractAuditLog 
+} from '@/lib/auditLogs';
+import { AuditLogsTab } from '@/components/AuditLogsTab';
 import { CHAMELEON_MODULES } from '@/lib/chameleonData';
 import { ModuleId } from '@/types/chameleon';
 
@@ -163,6 +169,29 @@ function getServerClientChatSnapshot(): string {
   return JSON.stringify(INITIAL_CONVERSATIONS);
 }
 
+// -------------------------------------------------------------
+// Audit Logs Sync External Store
+// -------------------------------------------------------------
+function subscribeAuditLogs(callback: () => void) {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener('storage', callback);
+  window.addEventListener('chameleon-audit-logs-updated', callback);
+  return () => {
+    window.removeEventListener('storage', callback);
+    window.removeEventListener('chameleon-audit-logs-updated', callback);
+  };
+}
+
+function getAuditLogsSnapshot(): string {
+  if (typeof window === 'undefined') return JSON.stringify(INITIAL_AUDIT_LOGS);
+  const data = localStorage.getItem('chameleon_contract_audit_logs_db');
+  return data || JSON.stringify(INITIAL_AUDIT_LOGS);
+}
+
+function getServerAuditLogsSnapshot(): string {
+  return JSON.stringify(INITIAL_AUDIT_LOGS);
+}
+
 export default function RestritoPage() {
   const sessionRaw = useSyncExternalStore(subscribeStaffSession, getStaffSessionSnapshot, getServerStaffSessionSnapshot);
   const session: StaffUser | null = useMemo(() => {
@@ -204,6 +233,16 @@ export default function RestritoPage() {
     }
   }, [chatRaw]);
 
+  // Audit logs synced state
+  const auditRaw = useSyncExternalStore(subscribeAuditLogs, getAuditLogsSnapshot, getServerAuditLogsSnapshot);
+  const auditLogs: ContractAuditLog[] = useMemo(() => {
+    try {
+      return JSON.parse(auditRaw);
+    } catch {
+      return INITIAL_AUDIT_LOGS;
+    }
+  }, [auditRaw]);
+
   // Login Form State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -211,8 +250,8 @@ export default function RestritoPage() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Dashboard Tabs: 'contracts' | 'demos' | 'chat'
-  const [activeTab, setActiveTab] = useState<'contracts' | 'demos' | 'chat'>('contracts');
+  // Dashboard Tabs: 'contracts' | 'demos' | 'chat' | 'audit'
+  const [activeTab, setActiveTab] = useState<'contracts' | 'demos' | 'chat' | 'audit'>('contracts');
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
 
   // Filters for Client Contracts
@@ -328,6 +367,15 @@ export default function RestritoPage() {
     const target = updatedContracts.find((c) => c.id === id);
     if (target) {
       setSelectedContract(target);
+      recordContractAuditLog({
+        contractId: target.id,
+        companyName: target.companyName,
+        action: 'Alteração de Status',
+        details: `Status do contrato alterado para "${newStatus}". Atualização efetuada na Área Restrita.`,
+        operatorName: session?.name,
+        operatorEmail: session?.email,
+        operatorRole: session?.role
+      });
     }
   };
 
@@ -337,11 +385,33 @@ export default function RestritoPage() {
     const target = updatedContracts.find((c) => c.id === id);
     if (target) {
       setSelectedContract(target);
+      recordContractAuditLog({
+        contractId: target.id,
+        companyName: target.companyName,
+        action: 'Atualização de Notas',
+        details: `Anotações internas do contrato atualizadas: "${contractEditingNotes.substring(0, 100)}${contractEditingNotes.length > 100 ? '...' : ''}".`,
+        operatorName: session?.name,
+        operatorEmail: session?.email,
+        operatorRole: session?.role
+      });
     }
   };
 
   const handleDeleteContract = (id: string) => {
+    const target = contracts.find((c) => c.id === id);
     if (confirm('Tem certeza que deseja remover este contrato da base ativa?')) {
+      if (target) {
+        recordContractAuditLog({
+          contractId: target.id,
+          companyName: target.companyName,
+          action: 'Exclusão de Contrato',
+          details: `Contrato corporativo ${target.id} da empresa ${target.companyName} removido da base operacional.`,
+          operatorName: session?.name,
+          operatorEmail: session?.email,
+          operatorRole: session?.role,
+          severity: 'warning'
+        });
+      }
       deleteClientContract(id);
       setSelectedContract(null);
     }
@@ -349,11 +419,21 @@ export default function RestritoPage() {
 
   const handleCreateManualContract = (e: React.FormEvent) => {
     e.preventDefault();
-    saveClientContract({
+    const saved = saveClientContract({
       ...newContractForm,
       selectedModules: [newContractForm.moduleId],
       moduleNames: [newContractForm.moduleName],
       teamTier: `${newContractForm.teamSize} usuários`
+    });
+    recordContractAuditLog({
+      contractId: saved.id,
+      companyName: saved.companyName,
+      action: 'Criação de Contrato',
+      details: `Novo contrato corporativo cadastrado manualmente na Área Restrita para ${saved.companyName} (${saved.moduleNames?.join(', ')}).`,
+      operatorName: session?.name,
+      operatorEmail: session?.email,
+      operatorRole: session?.role,
+      severity: 'success'
     });
     setIsNewContractModalOpen(false);
   };
@@ -368,6 +448,15 @@ export default function RestritoPage() {
     status?: string;
     moduleName?: string;
   }) => {
+    recordContractAuditLog({
+      contractId: client.id,
+      companyName: client.company,
+      action: 'Abertura de Chat WhatsApp',
+      details: `Acesso e abertura de canal de chat WhatsApp corporativo com o titular ${client.name} (${client.phone}).`,
+      operatorName: session?.name,
+      operatorEmail: session?.email,
+      operatorRole: session?.role
+    });
     const conversation = getOrCreateConversationForClient(client);
     setSelectedConversationId(conversation.id);
     setSelectedContract(null);
@@ -377,6 +466,16 @@ export default function RestritoPage() {
   };
 
   const handleExportContractsCSV = () => {
+    recordContractAuditLog({
+      contractId: 'BASE-GERAL',
+      companyName: 'Base Consolidada de Contratos',
+      action: 'Exportação de Relatório',
+      details: `Exportação gerencial completa em CSV contendo ${contracts.length} contratos corporativos ativos.`,
+      operatorName: session?.name,
+      operatorEmail: session?.email,
+      operatorRole: session?.role,
+      severity: 'warning'
+    });
     const headers = ['ID Contrato', 'Data', 'Vencimento', 'Dias para Renovação', 'Empresa', 'CNPJ', 'Cidade UF', 'Titular', 'Email', 'Telefone', 'Cargo', 'Modulo', 'Plano', 'Usuarios', 'Ciclo', 'Valor Mensal', 'Valor Anual', 'Ambiente', 'Integracao Legada', 'Pagamento', 'Status'];
     const rows = contracts.map((c) => {
       const exp = getContractExpirationInfo(c);
@@ -792,6 +891,22 @@ export default function RestritoPage() {
               {conversations.length}
             </span>
           </button>
+
+          {/* TAB 4: AUDITORIA DE ACESSOS (LGPD) */}
+          <button
+            onClick={() => setActiveTab('audit')}
+            className={`px-4 py-2.5 rounded-t-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+              activeTab === 'audit'
+                ? 'bg-slate-900 text-emerald-400 border-b-2 border-emerald-400 font-bold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>Auditoria de Acessos</span>
+            <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-mono font-bold">
+              {auditLogs.length}
+            </span>
+          </button>
         </div>
 
         {/* ======================================================== */}
@@ -981,6 +1096,15 @@ export default function RestritoPage() {
                             onClick={() => {
                               setSelectedContract(contract);
                               setContractEditingNotes(contract.internalNotes || '');
+                              recordContractAuditLog({
+                                contractId: contract.id,
+                                companyName: contract.companyName,
+                                action: 'Visualização de Ficha',
+                                details: `Visualização completa da ficha cadastral, parâmetros de implantação e histórico de status.`,
+                                operatorName: session?.name,
+                                operatorEmail: session?.email,
+                                operatorRole: session?.role
+                              });
                             }}
                             className="hover:bg-slate-800/40 transition-colors cursor-pointer group"
                           >
@@ -1364,6 +1488,31 @@ export default function RestritoPage() {
           />
         )}
 
+        {/* ======================================================== */}
+        {/* TAB 4: AUDITORIA DE ACESSOS E RASTREABILIDADE (LGPD)     */}
+        {/* ======================================================== */}
+        {activeTab === 'audit' && (
+          <AuditLogsTab
+            logs={auditLogs}
+            onOpenContract={(contractId) => {
+              const found = contracts.find((c) => c.id === contractId);
+              if (found) {
+                setSelectedContract(found);
+                setContractEditingNotes(found.internalNotes || '');
+                recordContractAuditLog({
+                  contractId: found.id,
+                  companyName: found.companyName,
+                  action: 'Visualização de Ficha',
+                  details: `Visualização de ficha técnica acessada a partir da aba de Auditoria de Acessos.`,
+                  operatorName: session?.name,
+                  operatorEmail: session?.email,
+                  operatorRole: session?.role
+                });
+              }
+            }}
+          />
+        )}
+
       </div>
 
       {/* ======================================================== */}
@@ -1568,6 +1717,15 @@ export default function RestritoPage() {
                       setIsProposalModalOpen(true);
                       setProposalCopied(false);
                       setProposalLinkCopied(false);
+                      recordContractAuditLog({
+                        contractId: selectedContract.id,
+                        companyName: selectedContract.companyName,
+                        action: 'Geração de Proposta',
+                        details: `Geração de proposta formal de provisionamento com token criptografado e link do painel de setup.`,
+                        operatorName: session?.name,
+                        operatorEmail: session?.email,
+                        operatorRole: session?.role
+                      });
                     }}
                     className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 hover:opacity-95 text-slate-950 font-bold flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 cursor-pointer"
                   >

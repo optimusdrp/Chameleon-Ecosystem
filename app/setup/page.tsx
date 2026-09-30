@@ -20,6 +20,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { INITIAL_CLIENT_CONTRACTS, ClientContract } from '@/lib/contracts';
+import { recordContractAuditLog } from '@/lib/auditLogs';
 
 function subscribeClientContracts(callback: () => void) {
   if (typeof window === 'undefined') return () => {};
@@ -97,8 +98,34 @@ function SetupContent() {
     setTimeout(() => {
       setTestValidationRunning(false);
       setTestValidationComplete(true);
+      if (contract) {
+        recordContractAuditLog({
+          contractId: contract.id,
+          companyName: contract.companyName,
+          action: 'Acesso ao Painel de Setup',
+          details: `Teste sintético de ping/latência executado com sucesso no cluster dedicado (latência aferida: 11.4 ms). Handshake aprovado.`,
+          operatorName: `${contract.contactName} (TI do Cliente)`,
+          operatorEmail: contract.contactEmail,
+          operatorRole: 'Cliente Titular / Engenharia de TI',
+          severity: 'success'
+        });
+      }
     }, 1800);
   };
+
+  useEffect(() => {
+    if (contract) {
+      recordContractAuditLog({
+        contractId: contract.id,
+        companyName: contract.companyName,
+        action: 'Acesso ao Painel de Setup',
+        details: `Homologador técnico do cliente acessou o painel de setup com token de autorização.`,
+        operatorName: `${contract.contactName} (TI do Cliente)`,
+        operatorEmail: contract.contactEmail,
+        operatorRole: 'Cliente Titular / Engenharia de TI'
+      });
+    }
+  }, [contract]);
 
   if (!contract) {
     return (

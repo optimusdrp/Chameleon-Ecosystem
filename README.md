@@ -30,11 +30,27 @@
    - [Método 1: Script Tag Universal (Zero-Code)](#método-1-script-tag-universal-zero-code)
    - [Método 2: SDK Universal (React / Next.js / Vue / Angular)](#método-2-sdk-universal-react--nextjs--vue--angular)
 8. [Simulador Interativo da Landing Page](#8-simulador-interativo-da-landing-page)
-9. [Estrutura de Arquivos & Detalhamento Arquitetural](#9-estrutura-de-arquivos--detalhamento-arquitetural)
-   - [Mapa Visual de Pastas e Arquivos](#mapa-visual-de-pastas-e-arquivos)
-   - [Detalhamento de Cada Arquivo do Projeto](#detalhamento-de-cada-arquivo-do-projeto)
-10. [Instalação, Execução e Comandos](#10-instalação-execução-e-comandos)
-11. [Métricas de Impacto e ROI Comprovado](#11-métricas-de-impacto-e-roi-comprovado)
+9. [Área Restrita Corporativa & Gestão de Contratos (`/restrito`)](#9-área-restrita-corporativa--gestão-de-contratos-restrito)
+   - [9.1. Autenticação Staff Segura & 2FA](#91-autenticação-staff-segura--2fa)
+   - [9.2. Gestão de Contratos de Clientes & Métricas (MRR/ARR)](#92-gestão-de-contratos-de-clientes--métricas-mrrarr)
+   - [9.3. Vencimento de Contratos & Alerta de Renovação (< 30 dias)](#93-vencimento-de-contratos--alerta-de-renovação--30-dias)
+   - [9.4. Timeline de Auditoria de Status (`ContractTimeline`)](#94-timeline-de-auditoria-de-status-contracttimeline)
+   - [9.5. Gerador de Proposta de Provisionamento & E-mail Pré-formatado](#95-gerador-de-proposta-de-provisionamento--e-mail-pré-formatado)
+   - [9.6. Exportação de Relatórios em CSV](#96-exportação-de-relatórios-em-csv)
+   - [9.7. Auditoria de Acessos & Rastreabilidade Total](#97-auditoria-de-acessos--rastreabilidade-total-auditlogstab--libauditlogsts)
+10. [Central de Atendimento & Chat WhatsApp com Clientes (`ClientChatTab`)](#10-central-de-atendimento--chat-whatsapp-com-clientes-clientchattab)
+    - [10.1. Integração Direta com 1 Clique nas Tabelas e Fichas](#101-integração-direta-com-1-clique-nas-tabelas-e-fichas)
+    - [10.2. Respostas Rápidas em 1 Toque](#102-respostas-rápidas-em-1-toque)
+    - [10.3. Mensageria Reativa & Respostas Automáticas Inteligentes](#103-mensageria-reativa--respostas-automáticas-inteligentes)
+11. [Painel de Setup Técnico & Provisionamento (`/setup`)](#11-painel-de-setup-técnico--provisionamento-setup)
+    - [11.1. Injeção do Micro-Script Universal (< 12KB)](#111-injeção-do-micro-script-universal--12kb)
+    - [11.2. Conectores para ERPs e Sistemas Legados](#112-conectores-para-erps-e-sistemas-legados)
+    - [11.3. Teste Sintético de Latência e Handshake (< 15ms)](#113-teste-sintético-de-latência-e-handshake--15ms)
+12. [Estrutura de Arquivos & Detalhamento Arquitetural](#12-estrutura-de-arquivos--detalhamento-arquitetural)
+    - [Mapa Visual de Pastas e Arquivos](#mapa-visual-de-pastas-e-arquivos)
+    - [Detalhamento de Cada Arquivo do Projeto](#detalhamento-de-cada-arquivo-do-projeto)
+13. [Instalação, Execução e Comandos](#13-instalação-execução-e-comandos)
+14. [Métricas de Impacto e ROI Comprovado](#14-métricas-de-impacto-e-roi-comprovado)
 
 ---
 
@@ -298,7 +314,117 @@ A aplicação conta com um **Simulador de Alta Fidelidade em Tempo Real** locali
 
 ---
 
-## 9. Estrutura de Arquivos & Detalhamento Arquitetural
+## 9. Área Restrita Corporativa & Gestão de Contratos (`/restrito`)
+
+A Área Restrita é a central de operações e governança dos clientes e leads do Chameleon Systems.
+
+### 9.1. Autenticação Staff Segura & 2FA
+- **Acesso Operacional:** Rota `/restrito`, também ativável pelo gatilho discreto de 5 cliques rápidos no logotipo Chameleon da barra de navegação (`lib/secretAuth.ts`).
+- **Camada Dupla de Segurança:** Exige credenciais autorizadas (`staff@chameleon.systems` / senha mestra) e código verificador de dois fatores (**PIN 2FA: `482910`**).
+- **Gestão de Sessão Reativa:** Estado de autenticação persistido em `sessionStorage` e sincronizado via `useSyncExternalStore` com logout em 1 clique.
+
+### 9.2. Gestão de Contratos de Clientes & Métricas (MRR/ARR)
+- **Base Centralizada de Contratos:** Tabela completa com filtros por texto, status, módulo e plano.
+- **Painel de KPIs em Tempo Real:**
+  - **MRR Contratado:** Soma do faturamento recorrente mensal de todos os contratos ativos.
+  - **ARR Projetado:** Projeção anual total de receita.
+  - **Licenças de Operadores:** Total de usuários corporativos sob cobertura ergonômica.
+  - **Contratos Homologados & Em Implantação:** Indicadores de entrega técnica.
+- **Registro Manual de Contratos:** Modal para cadastro direto de novos contratos com cálculo automático de valores mensais/anuais e seleção multi-módulos.
+
+### 9.3. Vencimento de Contratos & Alerta de Renovação (< 30 dias)
+- **Coluna "Data de Vencimento":** Exibe a data de término do ciclo de vigência e os dias restantes para renovação calculados pela função `getContractExpirationInfo()`.
+- **Badge de Alerta Visual Pulsante:**
+  - Contratos com **menos de 30 dias para o vencimento** recebem destaque visual âmbar/vermelho com badge animado (`⚠️ X dias p/ renovação` ou `⚠️ Vence Hoje!`).
+  - Contratos já vencidos exibem status destacado em vermelho.
+- **Cartão de KPI Dedicado:** Exibe o número total de contratos na zona de renovação crítica no topo do painel.
+- **Filtro de 1 Clique:** Opção no seletor de status para isolar instantaneamente apenas contas que requerem contato comercial prioritário.
+
+### 9.4. Timeline de Auditoria de Status (`ContractTimeline`)
+- Componente de auditoria cronológica integrado na ficha do contrato.
+- Registra cada transição de status (*Aguardando Provisionamento*, *Ativo / Em Implantação*, *Homologado*, *Pendente Assinatura Digital*, *Cancelado*), registrando data/hora exata, operador staff responsável e anotações técnicas internas.
+
+### 9.5. Gerador de Proposta de Provisionamento & E-mail Pré-formatado
+- **Botão "Enviar Proposta de Provisionamento":** Destaque em gradiente no rodapé da ficha do contrato.
+- **Minuta Institucional Automática:** Gera e-mail completo com razão social, CNPJ, módulos contratados, ambiente de hospedagem, SLA e link seguro com token de handshake criptografado:
+  `https://chameleon.systems/setup?contract=[ID]&token=[TOKEN]`.
+- **Ações Rápidas:**
+  - *Copiar E-mail Formatado:* Copia todo o texto padronizado para a área de transferência com feedback visual;
+  - *Copiar Link / Abrir Painel de Setup:* Permite testar o setup diretamente;
+  - *Abrir no Cliente de E-mail (`mailto:`):* Abre o cliente padrão (Outlook, Thunderbird, Gmail) com assunto e corpo pré-preenchidos.
+
+### 9.6. Exportação de Relatórios em CSV
+- Botão "Exportar Relatório CSV" que compila todos os campos contratuais (ID, Data, Vencimento, Dias p/ Renovação, CNPJ, Titular, Telefones, Módulos, Valores, Ambientes e Status) em formato compatível com Excel e Google Sheets.
+
+### 9.7. Auditoria de Acessos & Rastreabilidade Total (`AuditLogsTab` / `lib/auditLogs.ts`)
+- **Aba "Auditoria de Acessos" na Área Restrita:** Painel corporativo em conformidade com o Art. 37 da LGPD, registrando cada interação e acesso a dados de contratos.
+- **Rastreabilidade Extensiva:** Cada registro forense captura:
+  - *ID do Contrato & Razão Social* acessada;
+  - *Identificação do Operador:* Nome, e-mail corporativo e nível de permissão;
+  - *Ação Realizada:* Visualização de ficha, alteração de status, atualização de notas, geração de proposta, abertura de chat WhatsApp, exportação de relatório ou acesso ao setup;
+  - *Endereço IP & Localização:* Rastreamento do IP de origem com indicação de VPC/cidade e botão de cópia rápida;
+  - *User-Agent & Dispositivo:* Identificação do navegador e sistema operacional utilizado;
+  - *Carimbo de Tempo & Epoch:* Data e hora exatas da ocorrência;
+  - *Descrição Circunstanciada:* Detalhamento técnico da operação executada.
+- **Painel de KPIs Forenses:** Contadores de eventos totais, acessos em 24h, operadores distintos, IPs únicos e ações críticas.
+- **Inspeção Forense Detalhada:** Modal com visão detalhada do registro e botão "Copiar Registro JSON".
+- **Exportação de Logs em CSV:** Botão dedicado "Exportar Logs CSV" para relatórios formais de compliance e auditorias externas.
+
+---
+
+## 10. Central de Atendimento & Chat WhatsApp com Clientes (`ClientChatTab`)
+
+Aba dedicada dentro da Área Restrita para relacionamento técnico e operacional ágil com os clientes.
+
+### 10.1. Integração Direta com 1 Clique nas Tabelas e Fichas
+- **Redirecionamento Automático:** Ao clicar no ícone do WhatsApp em qualquer linha da tabela de contratos, tabela de leads ou na ficha detalhada, o sistema transita automaticamente para a aba de chat e seleciona a conversa do titular.
+- **Criação Sob Demanda:** Se o contato ainda não possuir conversa aberta, o sistema cria o canal instantaneamente com uma mensagem institucional de boas-vindas.
+
+### 10.2. Respostas Rápidas em 1 Toque
+- Pílulas de templates prontos no topo da janela de chat:
+  - 🔗 *Enviar Link de Setup:* Envia URL com token de integração técnica;
+  - ✅ *Homologação Concluída:* Confirma aprovação da latência sub-15ms e solicita liberação dos operadores;
+  - 🔑 *Solicitar Token de API:* Solicita credenciais de conexão com o ERP legado do cliente.
+
+### 10.3. Mensageria Reativa & Respostas Automáticas Inteligentes
+- Envio bidirecional de mensagens com verificação de status (`sent`, `delivered`, `read`).
+- **Simulador de Digitação & Respostas Automáticas:** Após o envio de mensagem pelo operador staff, o sistema simula o cliente digitando e gera respostas coerentes com o contexto (agradecimento de links, confirmação de testes fiscais ou dúvidas técnicas).
+- **Sincronização em Tempo Real:** Conversas e mensagens persistidas em `localStorage` com disparadores de eventos customizados (`chameleon-chat-updated`).
+
+---
+
+## 11. Painel de Setup Técnico & Provisionamento (`/setup`)
+
+Página dedicada para a equipe de TI e homologadores do cliente ativarem a camada de adaptação ergonômica.
+
+### 11.1. Injeção do Micro-Script Universal (< 12KB)
+- Fornece o bloco de código minimalista pronto para inserção no cabeçalho `<head>` do software anfitrião do cliente:
+  ```html
+  <script
+    src="https://cdn.chameleon.systems/v1/chameleon-observer.js"
+    data-contract-id="CTR-2026-XXXX"
+    data-environment="cloud-dedicated"
+    data-zero-pii="strict"
+    data-brand-lock="enforced"
+    async
+  ></script>
+  ```
+- Botão de cópia em 1 clique com feedback visual imediato.
+
+### 11.2. Conectores para ERPs e Sistemas Legados
+- Suporte homologado a conectores dedicados:
+  - **TOTVS Protheus:** Mapeamento de rotinas fiscais e atalhos de faturamento;
+  - **SAP S/4HANA Cloud:** Compactação de grades e síntese de pedidos;
+  - **Salesforce Enterprise:** Otimização de pipeline Kanban e gatilhos de WhatsApp.
+- Campo de homologação do **Token Criptografado de Integração**.
+
+### 11.3. Teste Sintético de Latência e Handshake (< 15ms)
+- Ferramenta interativa de teste de ping entre o micro-script do cliente e o cluster corporativo Chameleon.
+- Emite relatório com latência mensurada (ex.: **11.4 ms**), verificação de conformidade Zero-PII e aprovação formal para início de uso em produção.
+
+---
+
+## 12. Estrutura de Arquivos & Detalhamento Arquitetural
 
 ### Mapa Visual de Pastas e Arquivos
 
@@ -308,6 +434,10 @@ A aplicação conta com um **Simulador de Alta Fidelidade em Tempo Real** locali
 │   ├── api/
 │   │   └── assistant/
 │   │       └── route.ts         # Endpoint de IA server-side (Gemini API) para consultoria de layout
+│   ├── restrito/
+│   │   └── page.tsx             # Área restrita corporativa (Contratos, Leads, Chat WhatsApp, Métricas)
+│   ├── setup/
+│   │   └── page.tsx             # Painel de setup técnico e provisionamento de micro-scripts
 │   ├── globals.css              # Estilos globais Tailwind CSS v4, temas e fontes
 │   ├── layout.tsx               # Root Layout com Plus Jakarta Sans e Space Grotesk
 │   └── page.tsx                 # Página principal da Landing Page
@@ -318,6 +448,9 @@ A aplicação conta com um **Simulador de Alta Fidelidade em Tempo Real** locali
 │   ├── ThemeSwitcher.tsx        # Seletor de perfis estéticos (Modern Minimalist, High Contrast, Ocean Blue)
 │   ├── ChameleonAssistant.tsx   # Assistente flutuante de layout com IA (FAB + Chat em tempo real)
 │   ├── AdaptationToast.tsx      # Indicador visual e toast de feedback de layout adaptado com sucesso
+│   ├── AuditLogsTab.tsx         # Aba de auditoria de acessos corporativos (LGPD, IPs, dispositivos, ações)
+│   ├── ClientChatTab.tsx        # Aba de chat com clientes integrado ao WhatsApp Business API
+│   ├── ContractTimeline.tsx     # Linha do tempo visual de auditoria de histórico de status de contratos
 │   ├── ModulesGrid.tsx          # Grade com os 5 módulos independentes plug-and-play
 │   ├── HowItWorks.tsx           # Arquitetura ergonômica em 4 etapas e Brand Lock
 │   ├── ModuleConfigurator.tsx   # Calculadora de ROI e construtor dinâmico de pacotes
@@ -328,7 +461,12 @@ A aplicação conta com um **Simulador de Alta Fidelidade em Tempo Real** locali
 ├── hooks/
 │   └── use-mobile.ts            # Hook SSR-safe para detecção de viewport móvel
 ├── lib/
+│   ├── auditLogs.ts             # Modelos, persistência reativa e registro forense de auditoria de acessos
 │   ├── chameleonData.ts         # Base de dados dos módulos, personas e métricas
+│   ├── clientChat.ts            # Modelos, persistência e auto-respostas do chat de clientes WhatsApp
+│   ├── contracts.ts             # Modelos, persistência, cálculo de vencimento e propostas de contratos
+│   ├── demoRequests.ts          # Persistência e regras de negócio de solicitações de demonstração
+│   ├── secretAuth.ts            # Autenticação staff, 2FA e gatilho de acesso secreto via logotipo
 │   └── utils.ts                 # Utilitário de mesclagem condicional de classes (cn)
 ├── types/
 │   ├── chameleon.ts             # Tipagens TypeScript completas do ecossistema
@@ -355,143 +493,149 @@ Abaixo encontra-se a explicação detalhada de cada pasta e arquivo que compõe 
 
 * **`/app/api/assistant/route.ts`**
   - **O que faz:** Rota de API server-side que conecta a interface do assistente ao modelo de inteligência artificial **Gemini 3.8 Flash** (`@google/genai`).
-  - **Para que serve:** Recebe as mensagens da conversa e o contexto da página em tempo real (módulo ativo, densidade atual, persona ergonômica e viewport). Processa diretrizes especializadas de ergonomia corporativa e retorna recomendações personalizadas de layout, atalhos de teclado e densidade visual, com fallback inteligente caso a chave de API não esteja configurada.
+  - **Para que serve:** Recebe as mensagens da conversa e o contexto da página em tempo real (módulo ativo, densidade atual, persona ergonômica e viewport). Processa diretrizes especializadas de ergonomia corporativa e retorna recomendações personalizadas de layout, atalhos de teclado e densidade visual.
+
+* **`/app/restrito/page.tsx`**
+  - **O que faz:** Painel administrativo restrito de governança operacional e comercial para operadores Staff.
+  - **Para que serve:**
+    - Autenticação de equipe com proteção de credenciais e segundo fator (PIN 2FA);
+    - Gestão completa de Contratos de Clientes (com cálculo dinâmico de MRR, ARR e licenças);
+    - Monitoramento de Vencimentos de Contratos com alertas visuais para prazos inferiores a 30 dias;
+    - Emissão e envio de Propostas de Provisionamento com link seguro;
+    - Central de Atendimento e Chat WhatsApp integrado;
+    - Gerenciamento de leads de demonstração e exportação de relatórios em CSV.
+
+* **`/app/setup/page.tsx`**
+  - **O que faz:** Página de ativação técnica e homologação do micro-script para a equipe de TI do cliente.
+  - **Para que serve:** Recebe o contrato via parâmetro de URL (`/setup?contract=CTR-XXXX&token=YYYY`), disponibiliza o script universal (< 12KB) com cópia em 1 clique, token de autenticação e simulador de teste de latência e handshake sintético (< 15ms).
 
 * **`/app/globals.css`**
   - **O que faz:** Contém as diretivas de estilo global do projeto utilizando o **Tailwind CSS v4** (`@import "tailwindcss";`).
-  - **Para que serve:** Define variáveis de tema de tipografia (`--font-sans` e `--font-display`), regras de contenção estrita contra transbordamento horizontal (`html, body { max-width: 100vw; overflow-x: hidden; }`), estilização minimalista de barras de rolagem (`::-webkit-scrollbar`) e padrões visuais de fundo sutis em malha quadriculada (`.bg-grid-subtle`) e pontilhada (`.bg-dot-subtle`).
+  - **Para que serve:** Define variáveis de tema de tipografia (`--font-sans` e `--font-display`), regras de contenção estrita contra transbordamento horizontal (`html, body { max-width: 100vw; overflow-x: hidden; }`) e estilização de barras de rolagem.
 
 * **`/app/layout.tsx`**
-  - **O que faz:** É o componente de layout raiz (*Root Layout*) que envelopa todas as rotas e componentes da aplicação.
-  - **Para que serve:** Carrega e injeta as fontes modernas do Google Fonts (**Plus Jakarta Sans** para corpo de texto e **Space Grotesk** para títulos/displays), configura os metadados oficiais de SEO, OpenGraph e Twitter Cards do Chameleon, e injeta as classes de contenção `overflow-x-hidden max-w-full` na tag `<html>` e `<body>`.
+  - **O que faz:** Componente de layout raiz (*Root Layout*) que envelopa todas as rotas da aplicação.
+  - **Para que serve:** Carrega as fontes modernas do Google Fonts (**Plus Jakarta Sans** e **Space Grotesk**), configura metadados oficiais de SEO, OpenGraph e Twitter Cards, e injeta as regras de viewport.
 
 * **`/app/page.tsx`**
-  - **O que faz:** Página principal da aplicação (`/`), estruturada como Client Component orchestrador.
-  - **Para que serve:** Monta a experiência completa da landing-page em ordem lógica de conversão. Gerencia os estados globais da interface (como abertura e pré-configuração do modal de leads `leadModalOpen`, módulo ativo selecionado e contagem de usuários para estimativa). Garante que a tag `<main>` possua contenção total `w-full max-w-full overflow-x-hidden`.
+  - **O que faz:** Página principal da aplicação (`/`), orquestradora da experiência da landing page.
+  - **Para que serve:** Monta a experiência completa com hero section, mini-simulador morphing, catálogo dos 5 módulos, como funciona, simulador central em tempo real, calculadora de ROI e formulário de leads.
 
 ---
 
 #### 📁 Diretório `/components` (Componentes Visuais Modulares)
 
+* **`/components/AuditLogsTab.tsx`**
+  - **O que faz:** Interface forense e gerencial de auditoria de acessos aos contratos corporativos.
+  - **Para que serve:** Exibe a tabela completa de logs (IP, geolocalização aproximada, operador, cargo, ação, carimbo de data/hora e detalhes técnicos), filtros instantâneos por ação e contrato, métricas forenses (acessos em 24h, operadores e IPs distintos), modal de inspeção profunda com JSON e botão de exportação dos logs em CSV.
+
+* **`/components/ClientChatTab.tsx`**
+  - **O que faz:** Interface de chat corporativo WhatsApp para suporte e implantação com clientes.
+  - **Para que serve:** Permite a comunicação direta entre a equipe staff e os titulares de contratos ou leads. Possui busca de conversas, badges de status, respostas rápidas em 1 clique (link de setup, confirmação de homologação, solicitação de token), indicador de digitação e respostas automáticas simuladas.
+
+* **`/components/ContractTimeline.tsx`**
+  - **O que faz:** Linha do tempo visual de auditoria de transição de status contratuais.
+  - **Para que serve:** Exibe de forma cronológica cada mudança de fase do contrato (*Aguardando Provisionamento*, *Ativo / Em Implantação*, *Homologado*, *Pendente Assinatura Digital*, *Cancelado*), com carimbo de data/hora, autor da mudança e notas técnicas de auditoria.
+
 * **`/components/Navbar.tsx`**
-  - **O que faz:** Cabeçalho de navegação fixo (*sticky*) com efeito de desfoque de fundo (*backdrop-blur*) ao rolar a página.
-  - **Para que serve:** Permite a navegação rápida para seções cruciais (*Simulador em Tempo Real*, *Módulos*, *Como Funciona*, *Calculadora de ROI*, *FAQ*), exibe a identidade visual da marca Chameleon com ícone dinâmico e oferece o botão primário de conversão *"Solicitar Demonstração"*. Inclui menu hambúrguer responsivo para dispositivos móveis.
+  - **O que faz:** Cabeçalho global de navegação e CTAs com ThemeSwitcher integrado.
+  - **Para que serve:** Navegação rápida, alternador estético de paletas corporativas e botão de demonstração. Contém o gatilho discreto de 5 cliques rápidos no logotipo para acesso à Área Restrita.
 
 * **`/components/Hero.tsx`**
-  - **O que faz:** Primeira dobra da página (seção de impacto visual e proposta de valor imediata).
-  - **Para que serve:** Apresenta a headline com gradientes de alta fidelidade, badge de ecossistema neural sem código backend, botões de ação e métricas de impacto comprovado (+44% velocidade, <18ms latência, -61% cliques). À direita, traz um **mini-simulador dinâmico de morphing** com botões rápidos para alternar entre *ERP Gestão*, *CRM Vendas* e *Portal Web*, demonstrando varredura e adaptação visual imediata.
+  - **O que faz:** Seção de impacto inicial da landing page.
+  - **Para que serve:** Headline de alto impacto, métricas auditadas (+44% velocidade, <18ms latência) e mini-simulador interativo de morphing visual em tempo real.
 
 * **`/components/AdaptiveSimulator.tsx`**
-  - **O que faz:** O grande diferencial interativo da página — simulador de adaptação em tempo real com telemetria viva.
-  - **Para que serve:** Permite ao visitante escolher entre 4 módulos independentes (ERP, CRM, Portal Web, BI), interagir com elementos da tela simulada (emitir nota, chamar no WhatsApp, repetir pedido) e clicar no botão principal **"⚡ Testar Adaptação Automática"**. O componente simula o aprendizado neural, reposiciona dinamicamente os atalhos mais clicados, recalcula densidades visuais (Compacta, Padrão, Espaçosa) e permite alternar entre personas ergonômicas (*Power User*, *Minimalista*, *Noturno*, *Executivo*).
+  - **O que faz:** Simulador interativo central em tempo real com telemetria viva.
+  - **Para que serve:** Demonstração prática do aprendizado neural do Chameleon, permitindo ao usuário testar cliques, verificar o reposicionamento de atalhos e alternar entre personas ergonômicas.
+
+* **`/components/ThemeSwitcher.tsx`**
+  - **O que faz:** Seletor de temas estéticos visuais (Modern Minimalist, High Contrast, Ocean Blue, Violet).
+  - **Para que serve:** Demonstra a capacidade de preservação de marca e adaptação lumínica sem violação das regras de identidade corporativa.
 
 * **`/components/ChameleonAssistant.tsx`**
-  - **O que faz:** Assistente flutuante de layout com inteligência artificial generativa (FAB no canto inferior direito + interface conversacional de chat).
-  - **Para que serve:** Monitora o contexto ativo da navegação (módulo em teste, persona e densidade) para sugerir melhorias ergonômicas práticas. Possui badges de status em tempo real, sugestões rápidas de prompt (*1-Click Prompts*), formatação Markdown e botão de aplicação direta no Simulador em Tempo Real com rolagem suave automática.
+  - **O que faz:** Assistente flutuante de layout com IA generativa (Gemini 3.8 Flash).
+  - **Para que serve:** Analisa o contexto ativo da navegação e fornece consultoria ergonômica em tempo real, com aplicação direta de melhorias no simulador.
 
 * **`/components/ModulesGrid.tsx`**
-  - **O que faz:** Catálogo expositor dos 5 módulos independentes plug-and-play do Chameleon.
-  - **Para que serve:** Detalha cada produto que o cliente pode escolher adquirir (ERP Suite, CRM Sales, Web & Portais, BI Analytics e Core SDK Universal). Apresenta métricas específicas de cada módulo, tempo de setup de homologação (< 15 min a 48h), lista de recursos e botões individuais para testar o módulo no simulador ou contratar diretamente.
+  - **O que faz:** Catálogo expositor dos 5 módulos independentes plug-and-play do ecossistema.
+  - **Para que serve:** Detalha especificações, compatibilidade, tempo de setup e benefícios de cada produto.
 
 * **`/components/HowItWorks.tsx`**
-  - **O que faz:** Seção explicativa da metodologia e arquitetura do Chameleon.
-  - **Para que serve:** Detalha o funcionamento do ecossistema em 4 passos: (1) Sensoriamento ergonômico Zero-PII, (2) Mapeamento neural de afinidade, (3) Micro-adaptação não destrutiva sub-18ms e (4) Consistência multi-device com proteção de tokens corporativos (desktop, coletores de depósito e smartphones).
+  - **O que faz:** Seção explicativa da metodologia neural em 4 etapas e protocolo Brand Lock.
 
 * **`/components/ModuleConfigurator.tsx`**
-  - **O que faz:** Calculadora de ROI e construtor customizado de pacotes de módulos.
-  - **Para que serve:** Permite que o cliente marque/desmarque quais módulos utiliza, defina o número de operadores ativos (5 a 500+) através de um controle deslizante (*slider*) e selecione seu setor de atuação. Em tempo real, calcula as horas produtivas resgatadas no mês, a redução de erros operacionais e o retorno financeiro estimado, oferecendo um botão direto para solicitar proposta formal para a configuração montada.
+  - **O que faz:** Calculadora de ROI e construtor dinâmico de pacotes multi-módulo com slider de operadores.
 
 * **`/components/CaseStudies.tsx`**
-  - **O que faz:** Seção de prova social e validação em operações de grande porte.
-  - **Para que serve:** Apresenta depoimentos de executivos de grandes empresas (Logística, FinTech e E-Commerce) com dados auditados pós-implantação do Chameleon (redução de tempo de expedição, aceleração de ciclo comercial e queda em chamados de suporte).
+  - **O que faz:** Prova social corporativa com métricas de clientes dos setores de Logística, FinTech e E-Commerce.
 
 * **`/components/FAQSection.tsx`**
-  - **O que faz:** Seção interativa de perguntas frequentes em formato de sanfona (*accordion*).
-  - **Para que serve:** Responde às principais objeções técnicas e comerciais de CTOs e gestores: ausência de necessidade de reescrever backend, independência na contratação gradual de módulos, conformidade com a LGPD/GDPR e proteção de marcas registradas.
+  - **O que faz:** Acordeão expansível de perguntas frequentes sobre integração, backend imutável e segurança.
 
 * **`/components/LeadModal.tsx`**
-  - **O que faz:** Modal corporativo de captura de leads e geração assistida de blueprint de arquitetura.
-  - **Para que serve:** Permite ao cliente confirmar os módulos desejados, informar dados corporativos (nome, empresa, e-mail corporativo, WhatsApp, tamanho de equipe e ERP atual) e receber na hora a confirmação do plano técnico preliminar, agendando uma demonstração assistida na interface da própria empresa.
+  - **O que faz:** Modal de solicitação de proposta e blueprint técnico preliminar.
 
 * **`/components/AdaptationToast.tsx`**
-  - **O que faz:** Componente de notificação flutuante (*toast*) com feedback imediato de adaptação de layout.
-  - **Para que serve:** Disparado assim que a rede neural do Chameleon conclui a adaptação ergonômica de um módulo (via Telemetria em Tempo Real ou Simulador). Apresenta badge animado de sucesso, identificador colorido do módulo aplicado, métricas de latência (&lt;18ms) e economia de cliques (-4.2), além de barra de contagem regressiva linear e fechamento manual acessível.
+  - **O que faz:** Notificação flutuante com feedback visual imediato após a conclusão da adaptação de layout.
 
 * **`/components/Footer.tsx`**
-  - **O que faz:** Rodapé institucional com mapa de links e informações de conformidade.
-  - **Para que serve:** Reúne acessos rápidos a todos os módulos, ferramentas do ecossistema, declarações de conformidade de privacidade/LGPD e direitos autorais.
-
----
-
-#### 📁 Diretório `/hooks` (Hooks Customizados)
-
-* **`/hooks/use-mobile.ts`**
-  - **O que faz:** Hook customizado em React para detecção segura da largura de tela em relação ao breakpoint móvel (`768px`).
-  - **Para que serve:** Utiliza a API `React.useSyncExternalStore` para assinar mudanças na media query (`matchMedia`), prevenindo erros de hidratação no Next.js (SSR) e evitando disparos de renderização em cascata (*cascading renders*).
+  - **O que faz:** Rodapé institucional com declarações de conformidade LGPD e links rápidos.
 
 ---
 
 #### 📁 Diretório `/lib` (Regras de Negócio e Dados Estruturados)
 
+* **`/lib/auditLogs.ts`**
+  - **O que faz:** Módulo de auditoria, rastreabilidade e persistência de acessos a dados sensíveis de contratos corporativos.
+  - **Para que serve:**
+    - Modelo de dados `ContractAuditLog` com campos de IP, geolocalização, operador, ação, user-agent, severidade e descrição;
+    - Função `recordContractAuditLog()` para gravação automática de eventos de auditoria;
+    - Persistência reativa em `localStorage` e disparador de eventos customizados (`chameleon-audit-logs-updated`);
+    - Gerador e exportador de relatórios forenses em CSV (`exportAuditLogsCSV()`).
+
+* **`/lib/contracts.ts`**
+  - **O que faz:** Camada central de modelos e persistência de Contratos de Clientes.
+  - **Para que serve:**
+    - Estruturas de dados `ClientContract` e `StatusHistoryEntry`;
+    - Cálculo de prazos de vigência e alertas de renovação (`getContractExpirationInfo()`);
+    - Gerenciador de histórico de status (`updateClientContractStatus()`, `ensureContractHistory()`);
+    - Gerador de proposta técnica de provisionamento (`generateProvisioningProposalEmail()`);
+    - Persistência reativa em `localStorage` com eventos `chameleon-contracts-updated`.
+
+* **`/lib/clientChat.ts`**
+  - **O que faz:** Gerenciador de conversas e mensagens do WhatsApp integrado.
+  - **Para que serve:**
+    - Armazena canais de chat por cliente (`ClientConversation`, `ChatMessage`);
+    - Permite criação automática ou recuperação de conversas (`getOrCreateConversationForClient()`);
+    - Envio de mensagens com cálculo de carimbo de data/hora;
+    - Motor de respostas automáticas simuladas inteligentes do cliente.
+
+* **`/lib/demoRequests.ts`**
+  - **O que faz:** Gerenciador de leads e solicitações de demonstração recebidas na plataforma.
+  - **Para que serve:** Persistência, alteração de status e anotações internas para o funil comercial.
+
+* **`/lib/secretAuth.ts`**
+  - **O que faz:** Módulo de segurança, autenticação staff e controle de sessão da Área Restrita.
+  - **Para que serve:** Validação de credenciais, exigência de PIN 2FA, persistência em `sessionStorage` e mecanismo de detecção de 5 cliques rápidos no logotipo da marca.
+
 * **`/lib/chameleonData.ts`**
-  - **O que faz:** Central de dados estáticos do ecossistema.
-  - **Para que serve:** Contém a definição completa de cada módulo (`CHAMELEON_MODULES`), incluindo categorias, tempos de implantação, listas de funcionalidades, métricas auditadas e paletas visuais. Também armazena as configurações e parâmetros de cada persona ergonômica (`PERSONA_CONFIGS`).
+  - **O que faz:** Central de dados estáticos do ecossistema (módulos, personas, métricas e ROI).
 
 * **`/lib/utils.ts`**
-  - **O que faz:** Utilitário para mesclagem limpa de classes CSS utilitárias do Tailwind.
-  - **Para que serve:** Exporta a função padrão `cn(...)`, que combina `clsx` e `tailwind-merge` para resolver conflitos de classes condicionais sem duplicação de regras no DOM.
+  - **O que faz:** Utilitário padrão `cn(...)` para fusão de classes condicionais do Tailwind CSS.
 
 ---
 
-#### 📁 Diretório `/types` (Tipagens TypeScript)
+#### 📁 Diretórios `/hooks` e `/types`
 
-* **`/types/chameleon.ts`**
-  - **O que faz:** Declaração de tipos e interfaces estritas do TypeScript para o ecossistema.
-  - **Para que serve:** Define os identificadores de módulo (`ModuleId = 'portal' | 'erp' | 'crm' | 'bi' | 'sdk'`), a interface `ChameleonModule`, as personas de usuário (`UserPersona`), os estados de simulação em tempo real (`SimulationState`) e a estrutura de dados do formulário de proposta técnica (`LeadFormData`).
-
----
-
-#### 📄 Arquivos de Configuração da Raiz do Projeto
-
-* **`metadata.json`**
-  - **O que faz:** Arquivo de manifesto e registro do applet no Google AI Studio.
-  - **Para que serve:** Registra o nome oficial (`Chameleon — Ecossistema de Interfaces Adaptativas`), a descrição técnica do ecossistema e as capacidades autorizadas no runtime do Google Cloud.
-
-* **`package.json`**
-  - **O que faz:** Manifesto do ecossistema Node.js / npm.
-  - **Para que serve:** Lista todas as bibliotecas instaladas (Next.js 15, React 19, Motion, Lucide React, Tailwind CSS v4) e define os scripts operacionais (`npm run dev`, `npm run build`, `npm run start`, `npm run lint`).
-
-* **`next.config.ts`**
-  - **O que faz:** Arquivo de configuração oficial do framework Next.js.
-  - **Para que serve:** Define o modo estrito do React (`reactStrictMode`), habilita o modo de compilação autônoma (`output: 'standalone'`), transfigura pacotes de animação (`transpilePackages: ['motion']`) e gerencia a política de imagens remotas.
-
-* **`tsconfig.json`**
-  - **O que faz:** Configuração do compilador TypeScript (`tsc`).
-  - **Para que serve:** Estabelece a checagem estrita de tipos (`strict: true`), o mapeamento de paths de importação (`@/*` para a raiz `./*`), a resolução de módulos moderna (`moduleResolution: "bundler"`) e o target ECMAScript.
-
-* **`postcss.config.mjs`**
-  - **O que faz:** Configuração do processador PostCSS.
-  - **Para que serve:** Conecta o plugin `@tailwindcss/postcss` ao pipeline de build para compilar as diretivas do Tailwind CSS v4.
-
-* **`eslint.config.mjs` & `.eslintrc.json`**
-  - **O que faz:** Arquivos de regras de qualidade e conformidade de código do ESLint.
-  - **Para que serve:** Garante que o código fonte siga os padrões mais rígidos do ecossistema React/Next.js, prevenindo bugs de hooks, importações circulares ou erros de sintaxe.
-
-* **`.env.example`**
-  - **O que faz:** Modelo de documentação de variáveis de ambiente do projeto.
-  - **Para que serve:** Indica aos desenvolvedores quais chaves podem ser configuradas no runtime (como `GEMINI_API_KEY` e `APP_URL`).
-
-* **`.gitignore`**
-  - **O que faz:** Arquivo de instrução do sistema de versionamento Git.
-  - **Para que serve:** Impede o commit acidental de pastas pesadas e temporárias como `node_modules/`, `.next/`, logs e arquivos de build local.
-
-* **`README.md`**
-  - **O que faz:** Documentação técnica completa, executiva e arquitetural do ecossistema Chameleon.
-  - **Para que serve:** Serve como base de conhecimento definitiva para engenheiros, arquitetos de software e clientes corporativos compreenderem as regras, módulos, integrações e estrutura de código.
+* **`/hooks/use-mobile.ts`:** Hook SSR-safe para detecção de viewport móvel via `useSyncExternalStore`.
+* **`/types/chameleon.ts`:** Tipagens TypeScript de módulos, personas, estados de simulação e leads.
+* **`/types/theme.ts`:** Tipagens dos perfis estéticos visuais.
 
 ---
 
-## 10. Instalação, Execução e Comandos
+## 13. Instalação, Execução e Comandos
 
 ### Pré-requisitos
 * **Node.js**: Versão 20.x ou superior.
@@ -503,13 +647,13 @@ Abaixo encontra-se a explicação detalhada de cada pasta e arquivo que compõe 
 # 1. Instalar as dependências do projeto
 npm install
 
-# 2. Executar o servidor de desenvolvimento local
+# 2. Executar o servidor de desenvolvimento local (porta 3000)
 npm run dev
 
-# 3. Executar o validador de sintaxe e código (ESLint)
+# 3. Executar o validador de sintaxe e qualidade (ESLint)
 npm run lint
 
-# 4. Gerar o build otimizado de produção
+# 4. Compilar a aplicação para produção (Next.js build)
 npm run build
 
 # 5. Iniciar o servidor em modo de produção
@@ -518,7 +662,7 @@ npm start
 
 ---
 
-## 11. Métricas de Impacto e ROI Comprovado
+## 14. Métricas de Impacto e ROI Comprovado
 
 Estudos realizados em clientes com operações ativas de alta volumetria apontam os seguintes números médios após 90 dias de ativação do Chameleon:
 
@@ -529,6 +673,7 @@ Estudos realizados em clientes com operações ativas de alta volumetria apontam
   │  • Redução do tempo de treinamento de novatos: -70%          │
   │  • Tempo médio de retorno do investimento:     4.1 meses     │
   │  • Taxa de conformidade de marca (Brand Lock): 100%          │
+  │  • Latência de adaptação na interface:         < 15ms        │
   └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -536,6 +681,6 @@ Estudos realizados em clientes com operações ativas de alta volumetria apontam
 
 ## 📞 Contato & Suporte Corporativo
 
-O ecossistema **Chameleon** foi projetado para operações que não podem parar. Para agendar uma prova de conceito (PoC) assistida na interface da sua organização, utilize o simulador integrado ou solicite contato por meio do formulário do sistema.
+O ecossistema **Chameleon** foi projetado para operações corporativas que exigem alta performance e adaptabilidade contínua. Para agendar uma prova de conceito (PoC) assistida na interface da sua organização, utilize o simulador integrado ou solicite contato por meio da plataforma.
 
 *© Chameleon Ecosystem. Todos os direitos reservados.*
